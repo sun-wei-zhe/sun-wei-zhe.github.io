@@ -1,7 +1,7 @@
 ---
 layout:     post
-title:      细说 Asset 和 AssetBundle
-subtitle:   Assetbundle和Asset，内存分配与释放
+title:      细说 Unity 中的 Asset
+subtitle:   Asset和Meta的关系，GUID和FileID，内存分配与释放
 date:       2020-05-21
 author:     SWZ
 header-img: img/Asset和AssetBundle/bg-asset-assetbundle.jpg
@@ -52,7 +52,11 @@ Asset会被导入到Unity的Library文件夹之中，Unity本身是不会动你�
 
 如果想通过Resources.UnloadUnusedAssets()卸载从AssetBundle加载的资源，一定要先将AssetBundle卸载后才能生效。
 
+&nbsp;
 
+&nbsp;
+
+&nbsp;
 
 ## AssetBundle
 
