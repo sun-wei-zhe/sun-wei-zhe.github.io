@@ -59,7 +59,7 @@ CLR初始化时会为每一代选择一个预算容量（xx KB），如果分配
 
 1. 第0代超过预算（最常见的触发条件）
 2. CLR内部使用函数`MemoryResourceNotification`监视系统内存总体使用情况发现**低内存**时
-3. 显示调用`GC.Collect()`。
+3. 显示调用`GC.Collect`。
 
    > GCCollectionMode有三种模式：
    >
