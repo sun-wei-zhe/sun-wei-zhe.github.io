@@ -50,9 +50,9 @@ AssetBundle的本质其实就是个Zip包，它包含一个头（摘要信息）
 
 ### 构建方式
 
-利用`BuildPipeline.BuildAssetBundles(string outputPath, BuildAssetBundleOptions assetBundleOptions, BuildTarget targetPlatform)`函数
+利用`BuildPipeline.BuildAssetBundles(string outputPath, BuildAssetBundleOptions assetBundleOptions, BuildTarget targetPlatform)`函数。
 
-#### BuildAssetBundleOptions：
+BuildAssetBundleOptions：
 
 * `None`（默认LZMA，会将序列化数据压缩成LZMA流，使用时需要整体解包。优点是打包后体积小，缺点是解包时间长，且占用内存）
 
@@ -74,43 +74,45 @@ AssetBundle的本质其实就是个Zip包，它包含一个头（摘要信息）
 
 ### 加载方式
 
-* **AB加载**
+**【AB加载】**
 
-   1. `LoadFromCacheOrDownload(PathURL + "/fileName",version)`
+* `LoadFromCacheOrDownload(PathURL + "/fileName",version)`
 
-      使用此方式加载，将先从硬盘上的存储区域查找是否有对应的资源，再验证本地Version与传入值之间的关系，如果传入的Version>本地，则从传入的URL地址下载资源，并缓存到硬盘，替换掉现有资源，如果传入Version<=本地，则直接从本地读取资源；如果本地没有存储资源，则下载资源。此方法的存储路径无法设定以及访问。使用此方法载入资源，不会在内存中生成WebStream（其实已经将WebStream保存在本地），如果硬盘空间不够进行存储，将自动使用`new WWW`方法加载，并在内存中生成WebStream。
-      
-   2. `www.assetbundle`
+  > 使用此方式加载，将先从硬盘上的存储区域查找是否有对应的资源，再验证本地Version与传入值之间的关系，如果传入的Version>本地，则从传入的URL地址下载资源，并缓存到硬盘，替换掉现有资源，如果传入Version<=本地，则直接从本地读取资源；如果本地没有存储资源，则下载资源。此方法的存储路径无法设定以及访问。使用此方法载入资源，不会在内存中生成WebStream（其实已经将WebStream保存在本地），如果硬盘空间不够进行存储，将自动使用`new WWW`方法加载，并在内存中生成WebStream。
 
-   3. `LoadFormMemory`
+* `www.assetbundle`
 
-      WWW和这种方式AssetBundle文件会整个镜像于内存中，理论上文件多大就需要多大的内存，之后Load时还要占用额外内存去生成Asset对象。
+* `LoadFormMemory`
 
-   4. `LoadFromFile`
+  > WWW和这种方式AssetBundle文件会整个镜像于内存中，理论上文件多大就需要多大的内存，之后Load时还要占用额外内存去生成Asset对象。
 
-      这种方式不会把整个硬盘AssetBundle文件都加载到 内存来，而是类似建立一个文件操作句柄和缓冲区，需要时才实时Load，所以这种加载方式是最节省资源的，基本上AssetBundle本身不占什么内 存，只需要Asset对象的内存。可惜只能在PC/Mac Standalone程序中使用。
+* `LoadFromFile`
 
-* **Asset加载**
+  > 这种方式不会把整个硬盘AssetBundle文件都加载到 内存来，而是类似建立一个文件操作句柄和缓冲区，需要时才实时Load，所以这种加载方式是最节省资源的，基本上AssetBundle本身不占什么内 存，只需要Asset对象的内存。可惜只能在PC/Mac Standalone程序中使用。
 
-   1. `AssetBundle.Load`
-   2. `AssetBundle.LoadAsync`
-   3. `AssetBundle.LoadAll`
+**【Asset加载】**
+
+* `AssetBundle.Load`
+
+* `AssetBundle.LoadAsync`
+
+* `AssetBundle.LoadAll`
 
 ### 卸载方式
 
-* **AB卸载**
+**【AB卸载】**
 
-  `AssetBundle.Unload(bool unloadAllLoadedObjects)`
+* `AssetBundle.Unload(bool unloadAllLoadedObjects)`
 
-  参数unloadAllLoadedObjects代表是否要将加载出来的Asset一起卸载了。
+  > 参数unloadAllLoadedObjects代表是否要将加载出来的Asset一起卸载了。
 
-* **Asset卸载**
+**【Asset卸载】**
 
-  1. `Resources.UnloadAsset(Object)`
+* `Resources.UnloadAsset(Object)`
 
-  2. `Resources.UnloadUnusedAssets`
+* `Resources.UnloadUnusedAssets`
 
-     一定要先将AssetBundle卸载后才能生效。
+  > 一定要先将AssetBundle卸载后才能生效。
 
 ### 运行时加载细节
 
@@ -120,17 +122,26 @@ Load一个AssetBundle等于把硬盘或者网络的一个文件读到内存一�
 
 #### 举两个例子帮助理解
 
-##### 例子1：
+**例子1：**
 
 一个常见的错误：
 
-- 从AssetBundle里Load了一个prefab并克隆：`obj = Instaniate(MyAssetBundle.Load('MyPrefab”)`
-- 然后不需要的时候调用`Destroy(obj)`，你以为就释放干净了。
-- 其实这时候只是释放了Clone对象，通过Load加载的所有引用、非引用Assets对象全都静静静的躺在内存里。
-- 这种情况应该在Destroy以后用：`MyAssetBundle.Unload(true)`彻底释放干净。
-- 如果这个AssetBundle是要反复读取的，不方便`Unload`，那可以在Destroy以后用：`Resources.UnloadUnusedAssets`把所有和这个Assetbundle有关的Asset都销毁。
-- 当然如果这个Prefab也是要频繁创建、销毁的，那就应该让那些Assets呆在内存里以加速游戏体验。
-- 由此可以解释另一个之前有人提过的话题：**为什么第一次Instantiate 一个Prefab的时候都会卡一下？**
+```c#
+//从AssetBundle里Load了一个prefab并克隆之
+obj = Instaniate(MyAssetBundle.Load('MyPrefab”));
+                                    
+//你以为就释放干净了
+//其实这时候只是释放了Clone对象，通过Load加载的所有引用、非引用Assets对象全都静静静的躺在内存里
+Destroy(obj);
+
+//此时才彻底释放干净
+MyAssetBundle.Unload(true);
+
+//如果不想Unload这个AssetBundle，可以用以下接口把所有和这个Assetbundle有关的Asset都销毁
+Resources.UnloadUnusedAssets();                               
+```
+
+**这就解释了为什么第一次Instantiate 一个Prefab的时候都会卡一下？**
 
 > 因为在你第一次`Instantiate`之前，相应的Asset对象还没有被创建，要加载系统内置的AssetBundle并创建Assets。第一次以后你虽然Destroy了，但Prefab的Assets对象都还在内存里，所以就很快了。
 
@@ -138,33 +149,32 @@ Load一个AssetBundle等于把硬盘或者网络的一个文件读到内存一�
 
 ##### 例子2：
 
-- 从磁盘读取一个ab.unity3d文件到内存并建立一个AssetBundle对象
+```c#
+//从磁盘读取一个ab.unity3d文件到内存并建立一个AssetBundle对象
+AssetBundle MyAssetBundle = AssetBundle.CreateFromFile("ab.unity3d");
 
-  `AssetBundle MyAssetBundle = AssetBundle.CreateFromFile("ab.unity3d");`
+//从AssetBundle1里读取并创建一个Texture Asset,把obj1的主贴图指向它
+obj1.renderer.material.mainTexture = AssetBundle1.Load("wall") as Texture;
+//把obj2的主贴图也指向同一个Texture Asset
+//Texture是引用对象，永远不会有自动复制的情况出现(除非你真需要，用代码自己实现copy)，只会是创建和添加引用
+obj2.renderer.material.mainTexture = obj1.renderer.material.mainTexture;
 
-- 从AssetBundle1里读取并创建一个Texture Asset,把obj1的主贴图指向它
+//那obj1和obj2都变成黑的了，因为指向的Texture Asset没了
+MyAssetBundle.Unload(true);
+//那obj1和obj2不变，只是AssetBundle1的内存镜像释放了
+MyAssetBundle.Unload(false);
 
-  `obj1.renderer.material.mainTexture = AssetBundle1.Load("wall") as Texture;`
-
-- 把obj2的主贴图也指向同一个Texture Asset
-
-  `obj2.renderer.material.mainTexture =obj1.renderer.material.mainTexture;`
-
-- **Texture是引用对象，永远不会有自动复制的情况出现**(除非你真需要，用代码自己实现copy)，只会是创建和添加引用。
-
-- `MyAssetBundle.Unload(true)` 那obj1和obj2都变成黑的了，因为指向的Texture Asset没了。
-
-- `MyAssetBundle.Unload(false)` 那obj1和obj2不变，只是AssetBundle1的内存镜像释放了。
-
-- `Destroy(obj1) `，obj1被释放，但并不会释放刚才Load的Texture。
-
-- 此时`Resources.UnloadUnusedAssets`，不会有任何内存释放 因为Texture asset还被obj2用着。
-
-- `Destroy(obj2)`，obj2被释放，但也不会释放刚才Load的Texture。
-
-- `Resources.UnloadUnusedAssets`，这时候刚才load的Texture Asset释放了，因为没有任何引用了。
-
-- 最后`CG.Collect`，强制立即释放内存。
+//obj1被释放，但并不会释放刚才Load的Texture
+Destroy(obj1);
+//不会有任何内存释放 因为Texture asset还被obj2用着
+Resources.UnloadUnusedAssets();
+//obj2被释放，但也不会释放刚才Load的Texture
+Destroy(obj2);
+//这时候刚才load的Texture Asset释放了，因为没有任何引用了
+Resources.UnloadUnusedAssets();
+//强制立即释放内存
+GC.Collect();
+```
 
 **综上：**
 
