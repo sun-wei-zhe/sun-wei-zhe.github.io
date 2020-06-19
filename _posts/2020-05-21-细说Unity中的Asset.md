@@ -31,7 +31,7 @@ Texture 2D|2D纹理|PSD TIFF JPG TGA PNG GIF BMP IFF PICT
 Font|字体|.ttf
 Meshes|网格|.FBX .dae .3DS .dxf .obj
 
-&nbsp;
+---
 
 ## Asset
 
@@ -116,10 +116,10 @@ RectTransform:
 
 发现里面有好多`--- !u!xxx &xxxxxxxxx`的形式，`!u!xxx`这里的xxx指的就是下面对应的类型，每一个类型都有一个对应的数字，比如RectTransform对应的就是224，GameObject对应的就是1。我们来看`GameOjbect：`的描述里有个两个component，和下面的MonoBehavior、RectTransform一一对应，我们就拿`- component: {fileID: 224560006234942640}`来说，**fileID**（本地ID），用于标识资源内部的资源，这个其实就对应了下面的RectTransform。接着来看下`MonoBehaviour:`的描述里有`m_Script: {fileID: 11500000, guid: 40326e242adcfb84bbc442ba9da245c4, type: 3}`，这个其实指向的是一个外部文件，追溯其guid在Library里对应的文件发现是TestScript.cs。
 ![](https://image-blog-1257507325.cos.ap-shanghai.myqcloud.com/Asset%E5%92%8CAssetBundle/test_guid_info.png)
+
 ![](https://image-blog-1257507325.cos.ap-shanghai.myqcloud.com/Asset%E5%92%8CAssetBundle/script_info.png)
 
-
-&nbsp;
+---
 
 ## AssetBundle
 
@@ -216,9 +216,7 @@ MyAssetBundle.Unload(true);
 Resources.UnloadUnusedAssets();                               
 ```
 
-**这就解释了为什么第一次Instantiate 一个Prefab的时候都会卡一下？**
-
-> 因为在你第一次`Instantiate`之前，相应的Asset对象还没有被创建，要加载系统内置的AssetBundle并创建Assets。第一次以后你虽然Destroy了，但Prefab的Assets对象都还在内存里，所以就很快了。
+**这就解释了为什么第一次Instantiate 一个Prefab的时候都会卡一下？**因为在你第一次`Instantiate`之前，相应的Asset对象还没有被创建，要加载系统内置的AssetBundle并创建Assets。第一次以后你虽然Destroy了，但Prefab的Assets对象都还在内存里，所以就很快了。
 
 
 
